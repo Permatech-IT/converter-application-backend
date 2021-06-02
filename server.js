@@ -253,17 +253,7 @@ app.post("/upload", (req, res) => {
         }
         console.log("fourth function");
 
-        const path = require("path");
-        const directory = __dirname + "/uploaded-files/";
-        fs.readdir(directory, (err, files) => {
-          if (err) throw err;
-          for (const file of files) {
-            fs.unlink(path.join(directory, file), (err) => {
-              if (err) throw err;
-            });
-          }
-          console.log("Deleted the uploaded file");
-        });
+      
 
         fs.createWriteStream(__dirname + "/download-files/finalfile.csv", {
           flag: "w",
@@ -299,17 +289,18 @@ app.get("/download/", (req, res) => {
     "Content-disposition": "attachment; filename=finalfile.csv",
   }); //here you can add more headers
   files.pipe(res);
-  const path = require("path");
-  const directory = __dirname + "/download-files/";
-  fs.readdir(directory, (err, files) => {
-    if (err) throw err;
-    for (const file of files) {
-      fs.unlink(path.join(directory, file), (err) => {
-        if (err) throw err;
-      });
-    }
-    console.log("Deleted the downloded file");
-  });
+  // const path = require("path");
+  // const directory = __dirname + "/download-files/";
+  // fs.readdir(directory, (err, files) => {
+  //   if (err) throw err;
+  //   for (const file of files) {
+    
+  //     fs.unlink(path.join(directory, file), (err) => {
+  //       if (err) throw err;
+  //     });
+  //   }
+  //   console.log("Deleted the downloded file");
+  // });
 });
 
 // app.get("/", (req, res) => {
