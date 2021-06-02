@@ -289,7 +289,9 @@ app.post("/upload", (req, res) => {
     // }
   });
 });
-
+app.get("/",(req,res)=>
+res.send("welcome")
+);
 app.get("/download/", (req, res) => {
   const fs = require("fs");
   var files = fs.createReadStream(__dirname + "/download-files/finalfile.csv");
