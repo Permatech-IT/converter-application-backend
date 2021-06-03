@@ -1,15 +1,15 @@
 const express = require("express");
 const fileupload = require("express-fileupload");
 const cors = require("cors");
-
+var path = require('path');
 const app = express();
-
+app.use("/public", express.static(path.join(__dirname, 'public')));
 app.use(cors());
 app.use(fileupload());
 app.use(express.static("files"));
 
 app.post("/upload", (req, res) => {
-  const newpath = __dirname + "/uploaded-files/";
+  const newpath =  "./public/uploaded-files/";
   //const newpath = "F:/Demo/";
   const file = req.files.file;
   const filename = file.name;
@@ -38,7 +38,7 @@ app.post("/upload", (req, res) => {
         });
 
         const destination = fs.createWriteStream(
-          __dirname + "/processing-files/original.csv",
+         "./public/processing-files/original.csv",
           {
             flags: "w+",
             // write data as a strings, this is default value
@@ -58,7 +58,7 @@ app.post("/upload", (req, res) => {
 
       function two(callback) {
         const origincolon = fs.createReadStream(
-          __dirname + "/processing-files/original.csv",
+       "./public/processing-files/original.csv",
           {
             flags: "r",
             // read data as a string not as a buffer
@@ -75,7 +75,7 @@ app.post("/upload", (req, res) => {
         });
 
         const destinationcolon = fs.createWriteStream(
-          __dirname + "/processing-files/temp.csv",
+         "./public/processing-files/temp.csv",
           {
             flags: "w+",
             // write data as a strings, this is default value
@@ -94,7 +94,7 @@ app.post("/upload", (req, res) => {
       function three(callback) {
         (async function () {
           const writeagain = fs.createWriteStream(
-            __dirname + "/processing-files/columnedit.csv"
+           "./public/processing-files/columnedit.csv"
           );
 
           const parseagain = fastcsv.parse({
@@ -201,7 +201,7 @@ app.post("/upload", (req, res) => {
               // delta is not loaded by parse() above
             }));
           const stream = fs
-            .createReadStream(__dirname + "/processing-files/temp.csv")
+            .createReadStream("./public/processing-files/temp.csv")
             .pipe(parseagain)
             .pipe(transformagain)
             .pipe(writeagain);
@@ -214,7 +214,7 @@ app.post("/upload", (req, res) => {
 
       function four() {
         let csv = fs.readFileSync(
-          __dirname + "/processing-files/columnedit.csv",
+          "./public/processing-files/columnedit.csv",
           "utf8"
         );
         csv = csv.split("\n").map((line) => line.trim());
@@ -255,7 +255,7 @@ app.post("/upload", (req, res) => {
 
       
 
-        fs.createWriteStream(__dirname + "/download-files/finalfile.csv", {
+        fs.createWriteStream("./public/download-files/finalfile.csv", {
           flag: "w",
           defaultEncoding: "utf8",
         }).end(csvarr.join("\n"));
@@ -284,7 +284,7 @@ res.send("welcome")
 );
 app.get("/download/", (req, res) => {
   const fs = require("fs");
-  var files = fs.createReadStream(__dirname + "/download-files/finalfile.csv");
+  var files = fs.createReadStream("./public/download-files/finalfile.csv");
   res.writeHead(200, {
     "Content-disposition": "attachment; filename=finalfile.csv",
   }); //here you can add more headers
