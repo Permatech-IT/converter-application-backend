@@ -1,15 +1,15 @@
 const express = require("express");
 const fileupload = require("express-fileupload");
 const cors = require("cors");
-var path = require('path');
+
 const app = express();
-app.use("/public", express.static(path.join(__dirname, 'public')));
+
 app.use(cors());
 app.use(fileupload());
 app.use(express.static("files"));
 
 app.post("/upload", (req, res) => {
-  const newpath =  "./public/uploaded-files/";
+  const newpath = "./public/uploaded-files/";
   //const newpath = "F:/Demo/";
   const file = req.files.file;
   const filename = file.name;
@@ -38,7 +38,7 @@ app.post("/upload", (req, res) => {
         });
 
         const destination = fs.createWriteStream(
-         "./public/processing-files/original.csv",
+          "./public/processing-files/original.csv",
           {
             flags: "w+",
             // write data as a strings, this is default value
@@ -58,7 +58,7 @@ app.post("/upload", (req, res) => {
 
       function two(callback) {
         const origincolon = fs.createReadStream(
-       "./public/processing-files/original.csv",
+          "./public/processing-files/original.csv",
           {
             flags: "r",
             // read data as a string not as a buffer
@@ -75,7 +75,7 @@ app.post("/upload", (req, res) => {
         });
 
         const destinationcolon = fs.createWriteStream(
-         "./public/processing-files/temp.csv",
+          "./public/processing-files/temp.csv",
           {
             flags: "w+",
             // write data as a strings, this is default value
@@ -94,7 +94,12 @@ app.post("/upload", (req, res) => {
       function three(callback) {
         (async function () {
           const writeagain = fs.createWriteStream(
-           "./public/processing-files/columnedit.csv"
+            "./public/processing-files/columnedit.csv",
+            {
+              flags: "w+",
+              // write data as a strings, this is default value
+              encoding: "utf8",
+            }
           );
 
           const parseagain = fastcsv.parse({
@@ -201,7 +206,9 @@ app.post("/upload", (req, res) => {
               // delta is not loaded by parse() above
             }));
           const stream = fs
-            .createReadStream("./public/processing-files/temp.csv")
+            .createReadStream("./public/processing-files/temp.csv", {
+              encoding: "utf8",
+            })
             .pipe(parseagain)
             .pipe(transformagain)
             .pipe(writeagain);
@@ -253,7 +260,17 @@ app.post("/upload", (req, res) => {
         }
         console.log("fourth function");
 
-      
+        // const path = require("path");
+        // const directory = "./public/uploaded-files/";
+        // fs.readdir(directory, (err, files) => {
+        //   if (err) throw err;
+        //   for (const file of files) {
+        //     fs.unlink(path.join(directory, file), (err) => {
+        //       if (err) throw err;
+        //     });
+        //   }
+        //   console.log("Deleted the uploaded file");
+        // });
 
         fs.createWriteStream("./public/download-files/finalfile.csv", {
           flag: "w",
@@ -279,22 +296,21 @@ app.post("/upload", (req, res) => {
     // }
   });
 });
-app.get("/",(req,res)=>
-res.send("welcome")
-);
+
 app.get("/download/", (req, res) => {
   const fs = require("fs");
-  var files = fs.createReadStream("./public/download-files/finalfile.csv");
+  var files = fs.createReadStream("./public/download-files/finalfile.csv", {
+    encoding: "utf8",
+  });
   res.writeHead(200, {
     "Content-disposition": "attachment; filename=finalfile.csv",
   }); //here you can add more headers
   files.pipe(res);
   // const path = require("path");
-  // const directory = __dirname + "/download-files/";
+  // const directory = "./public/download-files/";
   // fs.readdir(directory, (err, files) => {
   //   if (err) throw err;
   //   for (const file of files) {
-    
   //     fs.unlink(path.join(directory, file), (err) => {
   //       if (err) throw err;
   //     });
@@ -309,5 +325,5 @@ app.get("/download/", (req, res) => {
 // });
 
 app.listen(5000, () => {
-  console.log("Server running successfully on 8000");
+  console.log("Server running successfully on 5000");
 });
