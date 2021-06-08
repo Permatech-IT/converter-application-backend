@@ -3,7 +3,7 @@ const fileupload = require("express-fileupload");
 const cors = require("cors");
 
 const app = express();
-
+const utf8 = require('utf8');
 app.use(cors());
 app.use(fileupload());
 app.use(express.static("files"));
@@ -28,7 +28,7 @@ app.post("/upload", (req, res) => {
       function one(callback) {
         const origin = fs.createReadStream(`${newpath}${filename}`, {
           flags: "r",
-          encoding: "ISO-8859-15",
+          encoding: "utf8",
         });
         const transform = new stream.Transform({
           writableObjectMode: true,
@@ -42,7 +42,7 @@ app.post("/upload", (req, res) => {
           {
             flags: "w+",
             // write data as a strings, this is default value
-            encoding: "ISO-8859-15",
+            encoding: "utf8",
           }
         );
 
@@ -62,7 +62,7 @@ app.post("/upload", (req, res) => {
           {
             flags: "r",
             // read data as a string not as a buffer
-            encoding: "ISO-8859-15",
+            encoding: "utf8",
           }
         );
         const transformcolon = new stream.Transform({
@@ -79,7 +79,7 @@ app.post("/upload", (req, res) => {
           {
             flags: "w+",
             // write data as a strings, this is default value
-            encoding: "ISO-8859-15",
+            encoding: "utf8",
           }
         );
 
@@ -98,7 +98,7 @@ app.post("/upload", (req, res) => {
             {
               flags: "w+",
               // write data as a strings, this is default value
-              encoding: "ISO-8859-15",
+              encoding: "utf8",
             }
           );
 
@@ -207,7 +207,7 @@ app.post("/upload", (req, res) => {
             }));
           const stream = fs
             .createReadStream("./public/processing-files/temp.csv", {
-              encoding: "ISO-8859-15",
+              encoding: "utf8",
             })
             .pipe(parseagain)
             .pipe(transformagain)
@@ -222,7 +222,7 @@ app.post("/upload", (req, res) => {
       function four() {
         let csv = fs.readFileSync(
           "./public/processing-files/columnedit.csv",
-          "ISO-8859-15"
+          "utf8"
         );
         csv = csv.split("\n").map((line) => line.trim());
         let csvarr = [];
@@ -274,7 +274,7 @@ app.post("/upload", (req, res) => {
 
         fs.createWriteStream("./public/download-files/finalfile.csv", {
           flag: "w",
-          defaultEncoding: "ISO-8859-15",
+          defaultEncoding: "utf8",
         }).end(csvarr.join("\n"));
       }
 
