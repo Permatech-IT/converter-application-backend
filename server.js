@@ -26,10 +26,10 @@ app.post("/upload", (req, res) => {
       const stream = require("stream");
       const fastcsv = require("fast-csv");
       function one(callback) {
-        const origin = fs.createReadStream(`${newpath}${filename}`, {
+        const origin = fs.createReadStream(`${newpath}${filename}`, [
           flags: "r",
           encoding: "latin-1",
-        });
+        ]);
         const transform = new stream.Transform({
           writableObjectMode: true,
           transform: function removeNewLines(chunk, encoding, callback) {
@@ -39,11 +39,9 @@ app.post("/upload", (req, res) => {
 
         const destination = fs.createWriteStream(
           "./public/processing-files/original.csv",
-          {
-            flags: "w+",
-            // write data as a strings, this is default value
-            encoding: "latin-1",
-          }
+          [
+           utf8
+          ]
         );
 
         origin.pipe(transform).pipe(destination);
@@ -59,11 +57,9 @@ app.post("/upload", (req, res) => {
       function two(callback) {
         const origincolon = fs.createReadStream(
           "./public/processing-files/original.csv",
-          {
-            flags: "r",
-            // read data as a string not as a buffer
-            encoding: "latin-1",
-          }
+          [
+            utf8
+           ]
         );
         const transformcolon = new stream.Transform({
           // accept data as a strings
@@ -76,11 +72,9 @@ app.post("/upload", (req, res) => {
 
         const destinationcolon = fs.createWriteStream(
           "./public/processing-files/temp.csv",
-          {
-            flags: "w+",
-            // write data as a strings, this is default value
-            encoding: "latin-1",
-          }
+          [
+            utf8
+           ]
         );
 
         origincolon.pipe(transformcolon).pipe(destinationcolon);
@@ -95,11 +89,9 @@ app.post("/upload", (req, res) => {
         (async function () {
           const writeagain = fs.createWriteStream(
             "./public/processing-files/columnedit.csv",
-            {
-              flags: "w+",
-              // write data as a strings, this is default value
-              encoding: "latin-1",
-            }
+            [
+              utf8
+             ]
           );
 
           const parseagain = fastcsv.parse({
@@ -206,9 +198,9 @@ app.post("/upload", (req, res) => {
               // delta is not loaded by parse() above
             }));
           const stream = fs
-            .createReadStream("./public/processing-files/temp.csv", {
-              encoding: "latin-1",
-            })
+            .createReadStream("./public/processing-files/temp.csv", [
+              utf8
+             ])
             .pipe(parseagain)
             .pipe(transformagain)
             .pipe(writeagain);
@@ -222,7 +214,7 @@ app.post("/upload", (req, res) => {
       function four() {
         let csv = fs.readFileSync(
           "./public/processing-files/columnedit.csv",
-          "latin-1"
+          "utf8"
         );
         csv = csv.split("\n").map((line) => line.trim());
         let csvarr = [];
@@ -272,10 +264,9 @@ app.post("/upload", (req, res) => {
         //   console.log("Deleted the uploaded file");
         // });
 
-        fs.createWriteStream("./public/download-files/finalfile.csv", {
-          flag: "w",
-          defaultEncoding: "latin-1",
-        }).end(csvarr.join("\n"));
+        fs.createWriteStream("./public/download-files/finalfile.csv", [
+          utf8
+         ]).end(csvarr.join("\n"));
       }
 
       one(function () {
@@ -299,9 +290,9 @@ app.post("/upload", (req, res) => {
 
 app.get("/download/", (req, res) => {
   const fs = require("fs");
-  var files = fs.createReadStream("./public/download-files/finalfile.csv", {
-    encoding: "latin-1",
-  });
+  var files = fs.createReadStream("./public/download-files/finalfile.csv", [
+    utf8
+   ]);
   res.writeHead(200, {
     "Content-disposition": "attachment; filename=finalfile.csv",
   }); //here you can add more headers
