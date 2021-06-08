@@ -28,7 +28,7 @@ app.post("/upload", (req, res) => {
       function one(callback) {
         const origin = fs.createReadStream(`${newpath}${filename}`, {
           flags: "r",
-          encoding: "utf8",
+          encoding: "latin-1",
         });
         const transform = new stream.Transform({
           writableObjectMode: true,
@@ -42,7 +42,7 @@ app.post("/upload", (req, res) => {
           {
             flags: "w+",
             // write data as a strings, this is default value
-            encoding: "utf8",
+            encoding: "latin-1",
           }
         );
 
@@ -62,7 +62,7 @@ app.post("/upload", (req, res) => {
           {
             flags: "r",
             // read data as a string not as a buffer
-            encoding: "utf8",
+            encoding: "latin-1",
           }
         );
         const transformcolon = new stream.Transform({
@@ -79,7 +79,7 @@ app.post("/upload", (req, res) => {
           {
             flags: "w+",
             // write data as a strings, this is default value
-            encoding: "utf8",
+            encoding: "latin-1",
           }
         );
 
@@ -98,7 +98,7 @@ app.post("/upload", (req, res) => {
             {
               flags: "w+",
               // write data as a strings, this is default value
-              encoding: "utf8",
+              encoding: "latin-1",
             }
           );
 
@@ -207,7 +207,7 @@ app.post("/upload", (req, res) => {
             }));
           const stream = fs
             .createReadStream("./public/processing-files/temp.csv", {
-              encoding: "utf8",
+              encoding: "latin-1",
             })
             .pipe(parseagain)
             .pipe(transformagain)
@@ -222,7 +222,7 @@ app.post("/upload", (req, res) => {
       function four() {
         let csv = fs.readFileSync(
           "./public/processing-files/columnedit.csv",
-          "utf8"
+          "latin-1"
         );
         csv = csv.split("\n").map((line) => line.trim());
         let csvarr = [];
@@ -274,7 +274,7 @@ app.post("/upload", (req, res) => {
 
         fs.createWriteStream("./public/download-files/finalfile.csv", {
           flag: "w",
-          defaultEncoding: "utf8",
+          defaultEncoding: "latin-1",
         }).end(csvarr.join("\n"));
       }
 
@@ -300,7 +300,7 @@ app.post("/upload", (req, res) => {
 app.get("/download/", (req, res) => {
   const fs = require("fs");
   var files = fs.createReadStream("./public/download-files/finalfile.csv", {
-    encoding: "utf8",
+    encoding: "latin-1",
   });
   res.writeHead(200, {
     "Content-disposition": "attachment; filename=finalfile.csv",
