@@ -1,19 +1,15 @@
 const express = require("express");
 const fileupload = require("express-fileupload");
 const cors = require("cors");
-
 const app = express();
-// const utf8 = require('utf8');
 app.use(cors());
 app.use(fileupload());
 app.use(express.static("files"));
-const utf8= {encoding:"utf8"};
 app.post("/upload", (req, res) => {
   const newpath = "./public/uploaded-files/";
   //const newpath = "F:/Demo/";
   const file = req.files.file;
   const filename = file.name;
-
   file.mv(`${newpath}${filename}`, (err) => {
     const path = require("path");
     const extension = path.extname(`${filename}`);
@@ -21,76 +17,78 @@ app.post("/upload", (req, res) => {
     if (extension != ".asc" || `${filename}` === null) {
       res.status(500).send({ message: "File upload failed", code: 200 });
     } else {
-      res.status(200).send({ message: "File Uploaded", code: 200 });
+      res.status(200).send({ message: "Uploaded File ", code: 200 });
       const fs = require("fs");
       const stream = require("stream");
       const fastcsv = require("fast-csv");
+      //replacing comma with dot
       function replaceComma(callback) {
-        const origin = fs.createReadStream(`${newpath}${filename}`, 
-          utf8
-        );
+        const origin = fs.createReadStream(`${newpath}${filename}`, {
+          flags: "r",
+          encoding: "utf8",
+        });
         const transform = new stream.Transform({
           writableObjectMode: true,
           transform: function removeNewLines(chunk, encoding, callback) {
             callback(null, chunk.replace(/,/g, "."));
           },
         });
-
         const destination = fs.createWriteStream(
           "./public/processing-files/original.csv",
-         utf8
+          {
+            flags: "w+",
+            // write data as a strings, this is default value
+            encoding: "utf8",
+          }
         );
-
         origin.pipe(transform).pipe(destination);
-
         setTimeout(function () {
           console.log("first function executed");
           callback();
         }, 3000);
-
-        // removecomma();
       }
-
+      //replacing colon with colon and writing to csv file
       function replaceColon(callback) {
         const origincolon = fs.createReadStream(
           "./public/processing-files/original.csv",
-          
-            utf8
-           
+          {
+            flags: "r",
+            // read data as a string not as a buffer
+            encoding: "utf8",
+          }
         );
         const transformcolon = new stream.Transform({
           // accept data as a strings
           writableObjectMode: true,
-
           transform: function removeNewLines(chunk, encoding, callback) {
             callback(null, chunk.replace(/;/g, ","));
           },
         });
-
         const destinationcolon = fs.createWriteStream(
           "./public/processing-files/temp.csv",
-          
-            utf8
-           
+          {
+            flags: "w+",
+            // write data as a strings, this is default value
+            encoding: "utf8",
+          }
         );
-
         origincolon.pipe(transformcolon).pipe(destinationcolon);
-
         setTimeout(function () {
           console.log("second function executed");
           callback();
         }, 5000);
       }
-
+      //Adding dummy headers and replacing the hedaer text with the right ones
       function headerFix(callback) {
         (async function () {
           const writeagain = fs.createWriteStream(
             "./public/processing-files/columnedit.csv",
-            
-              utf8
-             
+            {
+              flags: "w+",
+              // write data as a strings, this is default value
+              encoding: "utf8",
+            }
           );
-
           const parseagain = fastcsv.parse({
             ignoreEmpty: true,
             discardUnmappedColumns: true,
@@ -190,14 +188,11 @@ app.post("/upload", (req, res) => {
               Groesse: row.col_55,
               Kennzeichen: row.col_56,
               Lagerbestand_physisch: row.col_57,
-
-              // redundant is dropped
-              // delta is not loaded by parse() above
             }));
           const stream = fs
-            .createReadStream("./public/processing-files/temp.csv", 
-              utf8
-             )
+            .createReadStream("./public/processing-files/temp.csv", {
+              encoding: "utf8",
+            })
             .pipe(parseagain)
             .pipe(transformagain)
             .pipe(writeagain);
@@ -207,7 +202,7 @@ app.post("/upload", (req, res) => {
           callback();
         }, 7000);
       }
-
+      //removing the first row and assigning value to the empty cells of 4 columns
       function valueAssign() {
         let csv = fs.readFileSync(
           "./public/processing-files/columnedit.csv",
@@ -215,12 +210,10 @@ app.post("/upload", (req, res) => {
         );
         csv = csv.split("\n").map((line) => line.trim());
         let csvarr = [];
-
         for (let i = 0; i < csv.length; i++) {
           let s = "";
           //csv.split(",").map((line) => line[14]="shishira");
           let split = csv[i].split(",");
-
           if (i != 1) {
             //console.log(split.length); //21
             for (j = 0; j < split.length; j++) {
@@ -229,7 +222,6 @@ app.post("/upload", (req, res) => {
               //   split[13] = "shishira";
               //console.log(Boolean(split[13]));
               // }
-
               if (split[13] === undefined) {
                 //split[13] = "undefined";
                 break;
@@ -248,7 +240,6 @@ app.post("/upload", (req, res) => {
           }
         }
         console.log("fourth function");
-
         // const path = require("path");
         // const directory = "./public/uploaded-files/";
         // fs.readdir(directory, (err, files) => {
@@ -260,12 +251,11 @@ app.post("/upload", (req, res) => {
         //   }
         //   console.log("Deleted the uploaded file");
         // });
-
-        fs.createWriteStream("./public/download-files/finalfile.csv", 
-          utf8
-         ).end(csvarr.join("\n"));
+        fs.createWriteStream("./public/download-files/finalfile.csv", {
+          flag: "w",
+          defaultEncoding: "utf8",
+        }).end(csvarr.join("\n"));
       }
-
       replaceComma(function () {
         replaceColon(function () {
           headerFix(function () {
@@ -274,7 +264,6 @@ app.post("/upload", (req, res) => {
         });
       });
     }
-
     // if (req.file) {
     //   if (err) {
     //     res.status(500).send({ message: "File upload failed", code: 200 });
@@ -284,12 +273,11 @@ app.post("/upload", (req, res) => {
     // }
   });
 });
-
 app.get("/download/", (req, res) => {
   const fs = require("fs");
-  var files = fs.createReadStream("./public/download-files/finalfile.csv", 
-    utf8
-   );
+  var files = fs.createReadStream("./public/download-files/finalfile.csv", {
+    encoding: "utf8",
+  });
   res.writeHead(200, {
     "Content-disposition": "attachment; filename=finalfile.csv",
   }); //here you can add more headers
@@ -306,12 +294,10 @@ app.get("/download/", (req, res) => {
   //   console.log("Deleted the downloded file");
   // });
 });
-
 // app.get("/", (req, res) => {
 //   const path = require("path");
 //   res.sendFile(path.join(__dirname  "../Frontend/build/index.html"));
 // });
-
-app.listen(5000, () => {
+app.listen(000, () => {
   console.log("Server running successfully on 5000");
 });
