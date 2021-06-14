@@ -3,11 +3,11 @@ const fileupload = require("express-fileupload");
 const cors = require("cors");
 
 const app = express();
-const utf8 = require('utf8');
+// const utf8 = require('utf8');
 app.use(cors());
 app.use(fileupload());
 app.use(express.static("files"));
-
+const utf8= {encoding:"utf8"};
 app.post("/upload", (req, res) => {
   const newpath = "./public/uploaded-files/";
   //const newpath = "F:/Demo/";
@@ -25,11 +25,10 @@ app.post("/upload", (req, res) => {
       const fs = require("fs");
       const stream = require("stream");
       const fastcsv = require("fast-csv");
-      function one(callback) {
-        const origin = fs.createReadStream(`${newpath}${filename}`, [
-          flags: "r",
-          encoding: "latin-1",
-        ]);
+      function replaceComma(callback) {
+        const origin = fs.createReadStream(`${newpath}${filename}`, 
+          utf8
+        );
         const transform = new stream.Transform({
           writableObjectMode: true,
           transform: function removeNewLines(chunk, encoding, callback) {
@@ -39,9 +38,7 @@ app.post("/upload", (req, res) => {
 
         const destination = fs.createWriteStream(
           "./public/processing-files/original.csv",
-          [
-           utf8
-          ]
+         utf8
         );
 
         origin.pipe(transform).pipe(destination);
@@ -54,12 +51,12 @@ app.post("/upload", (req, res) => {
         // removecomma();
       }
 
-      function two(callback) {
+      function replaceColon(callback) {
         const origincolon = fs.createReadStream(
           "./public/processing-files/original.csv",
-          [
+          
             utf8
-           ]
+           
         );
         const transformcolon = new stream.Transform({
           // accept data as a strings
@@ -72,9 +69,9 @@ app.post("/upload", (req, res) => {
 
         const destinationcolon = fs.createWriteStream(
           "./public/processing-files/temp.csv",
-          [
+          
             utf8
-           ]
+           
         );
 
         origincolon.pipe(transformcolon).pipe(destinationcolon);
@@ -85,13 +82,13 @@ app.post("/upload", (req, res) => {
         }, 5000);
       }
 
-      function three(callback) {
+      function headerFix(callback) {
         (async function () {
           const writeagain = fs.createWriteStream(
             "./public/processing-files/columnedit.csv",
-            [
+            
               utf8
-             ]
+             
           );
 
           const parseagain = fastcsv.parse({
@@ -198,9 +195,9 @@ app.post("/upload", (req, res) => {
               // delta is not loaded by parse() above
             }));
           const stream = fs
-            .createReadStream("./public/processing-files/temp.csv", [
+            .createReadStream("./public/processing-files/temp.csv", 
               utf8
-             ])
+             )
             .pipe(parseagain)
             .pipe(transformagain)
             .pipe(writeagain);
@@ -211,7 +208,7 @@ app.post("/upload", (req, res) => {
         }, 7000);
       }
 
-      function four() {
+      function valueAssign() {
         let csv = fs.readFileSync(
           "./public/processing-files/columnedit.csv",
           "utf8"
@@ -264,15 +261,15 @@ app.post("/upload", (req, res) => {
         //   console.log("Deleted the uploaded file");
         // });
 
-        fs.createWriteStream("./public/download-files/finalfile.csv", [
+        fs.createWriteStream("./public/download-files/finalfile.csv", 
           utf8
-         ]).end(csvarr.join("\n"));
+         ).end(csvarr.join("\n"));
       }
 
-      one(function () {
-        two(function () {
-          three(function () {
-            four(function () {});
+      replaceComma(function () {
+        replaceColon(function () {
+          headerFix(function () {
+            valueAssign(function () {});
           });
         });
       });
@@ -290,9 +287,9 @@ app.post("/upload", (req, res) => {
 
 app.get("/download/", (req, res) => {
   const fs = require("fs");
-  var files = fs.createReadStream("./public/download-files/finalfile.csv", [
+  var files = fs.createReadStream("./public/download-files/finalfile.csv", 
     utf8
-   ]);
+   );
   res.writeHead(200, {
     "Content-disposition": "attachment; filename=finalfile.csv",
   }); //here you can add more headers
