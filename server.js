@@ -9,7 +9,7 @@ app.use(fileupload());
 app.use(express.static("files"));
 
 app.post("/upload", (req, res) => {
-  const newpath = "./public/uploaded-files/";
+  const newpath = __dirname + "/uploaded-files/";
   //const newpath = "F:/Demo/";
   const file = req.files.file;
   const filename = file.name;
@@ -21,13 +21,11 @@ app.post("/upload", (req, res) => {
     if (extension != ".asc" || `${filename}` === null) {
       res.status(500).send({ message: "File upload failed", code: 200 });
     } else {
-      res.status(200).send({ message: "Uploaded File ", code: 200 });
+      res.status(200).send({ message: "File Uploaded", code: 200 });
       const fs = require("fs");
       const stream = require("stream");
       const fastcsv = require("fast-csv");
-
-      //replacing comma with dot
-      function replaceComma(callback) {
+      function one(callback) {
         const origin = fs.createReadStream(`${newpath}${filename}`, {
           flags: "r",
           encoding: "utf8",
@@ -40,7 +38,7 @@ app.post("/upload", (req, res) => {
         });
 
         const destination = fs.createWriteStream(
-          "./public/processing-files/original.csv",
+          __dirname + "/processing-files/original.csv",
           {
             flags: "w+",
             // write data as a strings, this is default value
@@ -54,12 +52,13 @@ app.post("/upload", (req, res) => {
           console.log("first function executed");
           callback();
         }, 3000);
+
+        // removecomma();
       }
 
-      //replacing colon with colon and writing to csv file
-      function replaceColon(callback) {
+      function two(callback) {
         const origincolon = fs.createReadStream(
-          "./public/processing-files/original.csv",
+          __dirname + "/processing-files/original.csv",
           {
             flags: "r",
             // read data as a string not as a buffer
@@ -76,7 +75,7 @@ app.post("/upload", (req, res) => {
         });
 
         const destinationcolon = fs.createWriteStream(
-          "./public/processing-files/temp.csv",
+          __dirname + "/processing-files/temp.csv",
           {
             flags: "w+",
             // write data as a strings, this is default value
@@ -92,16 +91,10 @@ app.post("/upload", (req, res) => {
         }, 5000);
       }
 
-      //Adding dummy headers and replacing the hedaer text with the right ones
-      function headerFix(callback) {
+      function three(callback) {
         (async function () {
           const writeagain = fs.createWriteStream(
-            "./public/processing-files/columnedit.csv",
-            {
-              flags: "w+",
-              // write data as a strings, this is default value
-              encoding: "utf8",
-            }
+            __dirname + "/processing-files/columnedit.csv"
           );
 
           const parseagain = fastcsv.parse({
@@ -203,11 +196,12 @@ app.post("/upload", (req, res) => {
               Groesse: row.col_55,
               Kennzeichen: row.col_56,
               Lagerbestand_physisch: row.col_57,
+
+              // redundant is dropped
+              // delta is not loaded by parse() above
             }));
           const stream = fs
-            .createReadStream("./public/processing-files/temp.csv", {
-              encoding: "utf8",
-            })
+            .createReadStream(__dirname + "/processing-files/temp.csv")
             .pipe(parseagain)
             .pipe(transformagain)
             .pipe(writeagain);
@@ -218,10 +212,9 @@ app.post("/upload", (req, res) => {
         }, 7000);
       }
 
-      //removing the first row and assigning value to the empty cells of 4 columns
-      function valueAssign() {
+      function four() {
         let csv = fs.readFileSync(
-          "./public/processing-files/columnedit.csv",
+          __dirname + "/processing-files/columnedit.csv",
           "utf8"
         );
         csv = csv.split("\n").map((line) => line.trim());
@@ -260,28 +253,28 @@ app.post("/upload", (req, res) => {
         }
         console.log("fourth function");
 
-        // const path = require("path");
-        // const directory = "./public/uploaded-files/";
-        // fs.readdir(directory, (err, files) => {
-        //   if (err) throw err;
-        //   for (const file of files) {
-        //     fs.unlink(path.join(directory, file), (err) => {
-        //       if (err) throw err;
-        //     });
-        //   }
-        //   console.log("Deleted the uploaded file");
-        // });
+        const path = require("path");
+        const directory = __dirname + "/uploaded-files/";
+        fs.readdir(directory, (err, files) => {
+          if (err) throw err;
+          for (const file of files) {
+            fs.unlink(path.join(directory, file), (err) => {
+              if (err) throw err;
+            });
+          }
+          console.log("Deleted the uploaded file");
+        });
 
-        fs.createWriteStream("./public/download-files/finalfile.csv", {
+        fs.createWriteStream(__dirname + "/download-files/finalfile.csv", {
           flag: "w",
           defaultEncoding: "utf8",
         }).end(csvarr.join("\n"));
       }
 
-      replaceComma(function () {
-        replaceColon(function () {
-          headerFix(function () {
-            valueAssign(function () {});
+      one(function () {
+        two(function () {
+          three(function () {
+            four(function () {});
           });
         });
       });
@@ -299,24 +292,22 @@ app.post("/upload", (req, res) => {
 
 app.get("/download/", (req, res) => {
   const fs = require("fs");
-  var files = fs.createReadStream("./public/download-files/finalfile.csv", {
-    encoding: "utf8",
-  });
+  var files = fs.createReadStream(__dirname + "/download-files/finalfile.csv");
   res.writeHead(200, {
     "Content-disposition": "attachment; filename=finalfile.csv",
   }); //here you can add more headers
   files.pipe(res);
-  // const path = require("path");
-  // const directory = "./public/download-files/";
-  // fs.readdir(directory, (err, files) => {
-  //   if (err) throw err;
-  //   for (const file of files) {
-  //     fs.unlink(path.join(directory, file), (err) => {
-  //       if (err) throw err;
-  //     });
-  //   }
-  //   console.log("Deleted the downloded file");
-  // });
+  const path = require("path");
+  const directory = __dirname + "/download-files/";
+  fs.readdir(directory, (err, files) => {
+    if (err) throw err;
+    for (const file of files) {
+      fs.unlink(path.join(directory, file), (err) => {
+        if (err) throw err;
+      });
+    }
+    console.log("Deleted the downloded file");
+  });
 });
 
 // app.get("/", (req, res) => {
