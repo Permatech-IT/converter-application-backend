@@ -1,6 +1,10 @@
 const express = require("express");
 const fileupload = require("express-fileupload");
 const cors = require("cors");
+const fs = require("fs");
+const stream = require("stream");
+const fastcsv = require("fast-csv");
+const utf8 = require('utf8');
 
 const app = express();
 // const utf8 = require('utf8');
@@ -10,9 +14,9 @@ app.use(express.static("files"));
 app.post("/upload", (req, res) => {
   const newpath = "./public/uploaded-files/";
   //const newpath = "F:/Demo/";
-  const file = req.files.file;
+  
+  const {file} = req.files;
   const filename = file.name;
-
   file.mv(`${newpath}${filename}`, (err) => {
     const path = require("path");
     const extension = path.extname(`${filename}`);
@@ -20,23 +24,26 @@ app.post("/upload", (req, res) => {
       // res.status(500).send({ message: "File upload failed", code: 200 });
     } else {
       // res.status(200).send({ message: "File Uploaded", code: 200 });
-      const fs = require("fs");
-      const stream = require("stream");
-      const fastcsv = require("fast-csv");
+      
+
       function one(callback) {
-        const origin = fs.createReadStream(`${newpath}${filename}`, 
+        const origin = fs.createReadStream(
+        `${newpath}${filename}`, 
         {encoding:'latin1'}
         );
 
         const transform = new stream.Transform({
           writableObjectMode: true,
-          encoding: 'latin1',
+          encoding: 'utf8',
           transform: function removeNewLines(chunk, encoding, callback) {
-            callback(null, chunk.replace(/,/g, "."));
+              let formated = chunk.replace(/,/g, ".").replace(/;/g, ",")
+            callback(
+                null, 
+                utf8.encode(formated)
+            );
           },
         });
 
-        
         const destination = fs.createWriteStream(
           "./public/processing-files/original.csv",
           {encoding:'latin1'}
@@ -59,50 +66,50 @@ app.post("/upload", (req, res) => {
         // removecomma();
       }
 
-      function two(callback) {
-        const origincolon = fs.createReadStream(
-          "./public/processing-files/original.csv",
+    //   function two(callback) {
+    //     const origincolon = fs.createReadStream(
+    //       "./public/processing-files/original.csv",
           
-          {encoding:'utf8'}
+    //       {encoding:'utf8'}
            
-        );
-        const transformcolon = new stream.Transform({
-          // accept data as a strings
-          writableObjectMode: true,
-          encoding: 'utf8',
-          transform: function removeNewLines(chunk, encoding, callback) {
-            callback(null, chunk.replace(/;/g, ","));
-          },
-        });
+    //     );
+    //     const transformcolon = new stream.Transform({
+    //       // accept data as a strings
+    //       writableObjectMode: true,
+    //       encoding: 'utf8',
+    //       transform: function removeNewLines(chunk, encoding, callback) {
+    //         callback(null, chunk.replace(/;/g, ","));
+    //       },
+    //     });
 
-        const destinationcolon = fs.createWriteStream(
-          "./public/processing-files/temp.csv",
+    //     const destinationcolon = fs.createWriteStream(
+    //       "./public/processing-files/temp.csv",
           
-          {encoding:'utf8'}
+    //       {encoding:'utf8'}
            
-        );
+    //     );
 
-        origincolon.pipe(transformcolon).pipe(destinationcolon);
+    //     origincolon.pipe(transformcolon).pipe(destinationcolon);
 
-        setTimeout(function () {
-          console.log("second function executed");
-          callback();
-        }, 5000);
-      }
+    //     setTimeout(function () {
+    //       console.log("second function executed");
+    //       callback();
+    //     }, 5000);
+    //   }
 
       function three(callback) {
         (async function () {
           const writeagain = fs.createWriteStream(
             "./public/processing-files/columnedit.csv",
             
-            {encoding:"latin1"}
+            {encoding:"utf8"}
              
           );
 
           const parseagain = fastcsv.parse({
             ignoreEmpty: true,
             discardUnmappedColumns: true,
-            encoding:'latin1',
+            encoding:'utf8',
             headers: [
               "col_1",
               "col_2",
@@ -178,33 +185,33 @@ app.post("/upload", (req, res) => {
           const transformagain = fastcsv
             .format({ headers: true, skipRows: 10, strictColumnHandling: true })
             .transform((row) => ({
-              ArNr: row.col_1,
-              Artikelbezeichnung: row.col_3,
-              PreisD: row.col_5,
-              Rabattpreis: row.col_6,
-              PreisCH: row.col_7,
-              VE: row.col_9,
-              Lagerbestand_generell: row.col_16,
-              Bestelldatum1: row.col_17,
-              Bestellmenge1: row.col_18,
-              Bestelldatum2: row.col_19,
-              Bestellmenge2: row.col_20,
-              Bestelldatum3: row.col_21,
-              Bestellmenge3: row.col_22,
-              Kategorie: row.col_23,
-              Subkategorie: row.col_24,
-              Lagerbestand_sofort: row.col_33,
-              Exportkennzeichen: row.col_50,
-              Farbe: row.col_54,
-              Groesse: row.col_55,
-              Kennzeichen: row.col_56,
-              Lagerbestand_physisch: row.col_57,
+              ArNr: utf8.decode(row.col_1),
+              Artikelbezeichnung: utf8.decode(row.col_3),
+              PreisD: utf8.decode(row.col_5),
+              Rabattpreis: utf8.decode(row.col_6),
+              PreisCH: utf8.decode(row.col_7),
+              VE: utf8.decode(row.col_9),
+              Lagerbestand_generell: utf8.decode(row.col_16),
+              Bestelldatum1: utf8.decode(row.col_17),
+              Bestellmenge1: utf8.decode(row.col_18),
+              Bestelldatum2: utf8.decode(row.col_19),
+              Bestellmenge2: utf8.decode(row.col_20),
+              Bestelldatum3: utf8.decode(row.col_21),
+              Bestellmenge3: utf8.decode(row.col_22),
+              Kategorie: utf8.decode(row.col_23),
+              Subkategorie: utf8.decode(row.col_24),
+              Lagerbestand_sofort: utf8.decode(row.col_33),
+              Exportkennzeichen: utf8.decode(row.col_50),
+              Farbe: utf8.decode(row.col_54),
+              Groesse: utf8.decode(row.col_55),
+              Kennzeichen: utf8.decode(row.col_56),
+              Lagerbestand_physisch: utf8.decode(row.col_57),
 
               // redundant is dropped
               // delta is not loaded by parse() above
             }));
           const stream = fs
-            .createReadStream("./public/processing-files/temp.csv", 
+            .createReadStream("./public/processing-files/original.csv", 
             {encoding:"latin1"}
              )
             .pipe(parseagain)
@@ -220,7 +227,7 @@ app.post("/upload", (req, res) => {
       function four() {
         let csv = fs.readFileSync(
           "./public/processing-files/columnedit.csv",
-          "utf8"
+          "latin1"
         );
         csv = csv.split("\n").map((line) => line.trim());
         let csvarr = [];
@@ -276,11 +283,11 @@ app.post("/upload", (req, res) => {
       }
 
       one(function () {
-        two(function () {
+        // two(function () {
           three(function () {
             four(function () {});
           });
-        });
+        // });
       });
     }
 
