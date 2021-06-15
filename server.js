@@ -46,7 +46,7 @@ app.post("/upload", (req, res) => {
 
         const destination = fs.createWriteStream(
           "./public/processing-files/original.csv",
-          {encoding:'latin1'}
+          {encoding:'utf8'}
           );
           
           origin
@@ -212,7 +212,7 @@ app.post("/upload", (req, res) => {
             }));
           const stream = fs
             .createReadStream("./public/processing-files/original.csv", 
-            {encoding:"latin1"}
+            {encoding:"utf8"}
              )
             .pipe(parseagain)
             .pipe(transformagain)
@@ -227,7 +227,7 @@ app.post("/upload", (req, res) => {
       function four() {
         let csv = fs.readFileSync(
           "./public/processing-files/columnedit.csv",
-          "latin1"
+          "utf8"
         );
         csv = csv.split("\n").map((line) => line.trim());
         let csvarr = [];
@@ -283,11 +283,9 @@ app.post("/upload", (req, res) => {
       }
 
       one(function () {
-        // two(function () {
           three(function () {
             four(function () {});
           });
-        // });
       });
     }
 
@@ -304,9 +302,7 @@ app.post("/upload", (req, res) => {
 
 app.get("/download/", (req, res) => {
   const fs = require("fs");
-  var files = fs.createReadStream("./public/download-files/finalfile.csv", 
-  {encoding:"latin1"}
-   );
+  var files = fs.createReadStream("./public/download-files/finalfile.csv");
   res.writeHead(200, {
     "Content-disposition": "attachment; filename=finalfile.csv",
   }); //here you can add more headers
